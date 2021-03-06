@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import torch
 from PIL import Image
 from sklearn.preprocessing import LabelEncoder
@@ -32,7 +33,7 @@ class ImgTxtDataset(Dataset):
             self.transform = transforms.Compose([
                 transforms.Grayscale(num_output_channels=1),
                 Pad(),
-                transforms.RandomAffine(degrees=5, scale=(0.8, 1.2), shear=10, resample=PIL.Image.BILINEAR),
+                transforms.RandomAffine(degrees=5, scale=(0.8, 1.2), shear=10, resample=Image.BILINEAR),
                 transforms.Resize((128, 32)),
                 transforms.ToTensor()
             ])
@@ -78,4 +79,4 @@ def get_char_list(text_list):
         char_list = list(text)
         char_set = char_set | set(char_list)
     result_char_list = list(char_set)
-    return sort(result_char_list)
+    return sorted(result_char_list)

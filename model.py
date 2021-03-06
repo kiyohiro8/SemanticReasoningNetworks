@@ -11,7 +11,7 @@ class SRNModel(nn.Module):
         resnet_name = params["resnet_name"]
         self.feature_extraction = ResNetFPN(resnet_name)
         self.seq_modeling = EncodeTransformer()
-        self.decoder = Decoder
+        self.decoder = Decoder()
 
     def forward(self, image, is_train=True):
         cnn_feature = self.feature_extraction(image)
@@ -23,14 +23,14 @@ class SRNModel(nn.Module):
 
         contextual_feature = self.seq_modeling(cnn_feature)[0]
 
-        prediction = self.decoder(contextual_feature)
+        pvam_out, gsrm_out, f_out = self.decoder(contextual_feature)
 
-        return prediction
+        return pvam_out, gsrm_out, f_out
 
 
 class Decoder(nn.Module):
     def __init__(self, n_dim, n_class, max_character=25, n_position=256, n_GSRM_layer=4):
-        self.pvam = PVAModule(max_character=max_character, n_position=n_position)
+        self.pvam = PVAModule(n_dim=n_dim, max_character=max_character, n_position=n_position)
         self.w_e = nn.Linear(n_dim, n_class)
 
         self.gsrm = GSRModule(
@@ -38,7 +38,7 @@ class Decoder(nn.Module):
             pad=n_class-1, 
             n_dim=n_dim,
             n_position=max_character, 
-            n_layers=n_GSRM_layer
+            n_layer=n_GSRM_layer
             )
         self.w_s = nn.Linear(n_dim, n_class)
         self.w_f = nn.Linear(n_dim, n_class)
@@ -100,8 +100,6 @@ class GSRModule(nn.Module):
         s = self.transformer(e, None)
 
         return s
-     
-
 
 
 class EncodeTransformer(nn.Module):
